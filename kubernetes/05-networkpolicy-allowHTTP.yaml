@@ -1,0 +1,42 @@
+# kubectl apply -f 04-networkpolicy.yaml
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-http
+  namespace: default
+spec:
+  podSelector:
+    matchLabels:
+      app: hello
+  policyTypes:
+    - Ingress
+#    - Egress
+  ingress:
+    - from:
+        # - ipBlock:
+            # cidr: 0.0.0.0/24
+      ports:
+        - protocol: TCP
+          port: 80
+  # egress:
+  # - to:
+    # - ipBlock:
+        # cidr: 10.0.0.0/24
+    # ports:
+    # - protocol: TCP
+      # port: 31000
+      # endPort: 33000
+
+
+# kind: NetworkPolicy
+# apiVersion: networking.k8s.io/v1
+# metadata:
+  # name: api-allow-5000
+# spec:
+  # podSelector:
+    # matchLabels:
+      # app: hello
+  # ingress:
+  # - ports:
+    # - port: 5000

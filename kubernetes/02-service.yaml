@@ -1,0 +1,15 @@
+# kubectl apply -f 02-service.yaml
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: hello
+spec:
+  type: NodePort
+  selector:
+    app: hello
+  ports:
+    - protocol: TCP
+      nodePort: 31000
+      port: 80
+      targetPort: http

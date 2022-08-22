@@ -1,0 +1,35 @@
+# kubectl apply -f 03-horizontal-pod-autoscaler.yaml
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: hello
+  namespace: default
+spec:
+  maxReplicas: 10
+  # Ensure App can scale up and down as needed with load.
+  metrics:
+  - resource:
+      name: cpu
+      target:
+        averageUtilization: 50
+        type: Utilization
+    type: Resource
+  minReplicas: 3
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: hello
+  behavior:
+    scaleDown:
+    # If the CPU goes below 30% reduce the number of pods.
+      policies:
+      - type: Percent
+        value: 30
+        periodSeconds: 60
+    # If CPU usage is over 70%, increase the number of pods.    
+    scaleUp:
+      policies:
+      - type: Percent
+        value: 70
+        periodSeconds: 60

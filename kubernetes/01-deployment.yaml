@@ -1,0 +1,60 @@
+# kubectl apply -f 01-deployment.yaml
+# kubectl rollout status deployment/hello
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hello
+spec:
+  replicas: 3    # Ensure the application can resist without downtime to host issues, and maintenance operations
+  strategy:
+    type: RollingUpdate
+    # Ensure the application can resist without downtime to host issues, and maintenance operations
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+  selector:
+    matchLabels:
+      app: hello
+  template:
+    metadata:
+      labels:
+        app: hello
+    spec:
+      affinity:
+        # Ensure application pods are distributed across the cluster nodes. We want to avoid all pods for the application residing on the same node.
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions: [{ key: app, operator: In, values: [hello] }]
+            topologyKey: "kubernetes.io/hostname"
+      containers:
+      - name: hello-container
+        image: nginxdemos/hello:latest
+        # It will be easier for you to test if you restrict the resources allocated to your deployment.
+        # Resource limits needed for HPA to function
+        resources:
+            limits:
+                cpu: 50m
+                memory: 100Mi
+            requests:
+                cpu: 25m
+                memory: 10Mi
+        ports:
+          - name: http
+            containerPort: 80
+        # Ensure we do not run the application container in privileged mode.
+        securityContext:
+          allowPrivilegeEscalation: false
+          privileged: false
+        # Ensure the application can resist without downtime to host issues, and maintenance operations (at all times we should be able to query the /status endpoint with success).
+        readinessProbe:
+          httpGet:
+            path: /status
+            port: 80
+        livenessProbe:
+          httpGet:
+            path: /status
+            port: 80
+      terminationGracePeriodSeconds: 1
